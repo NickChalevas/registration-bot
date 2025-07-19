@@ -14,8 +14,10 @@ export const SiteList: React.FC<SiteListProps> = ({ sites, onSiteUpdate }) => {
   const getStatusIcon = (status: Site['status']) => {
     switch (status) {
       case 'success':
+      case 'registered':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'failed':
+      case 'error':
         return <XCircle className="h-5 w-5 text-red-500" />;
       case 'processing':
         return <Clock className="h-5 w-5 text-blue-500 animate-spin" />;
@@ -27,8 +29,10 @@ export const SiteList: React.FC<SiteListProps> = ({ sites, onSiteUpdate }) => {
   const getStatusColor = (status: Site['status']) => {
     switch (status) {
       case 'success':
+      case 'registered':
         return 'bg-green-50 border-green-200';
       case 'failed':
+      case 'error':
         return 'bg-red-50 border-red-200';
       case 'processing':
         return 'bg-blue-50 border-blue-200';
@@ -40,8 +44,10 @@ export const SiteList: React.FC<SiteListProps> = ({ sites, onSiteUpdate }) => {
   const getStatusText = (status: Site['status']) => {
     switch (status) {
       case 'success':
+      case 'registered':
         return 'Registered';
       case 'failed':
+      case 'error':
         return 'Failed';
       case 'processing':
         return 'Processing';

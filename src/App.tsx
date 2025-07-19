@@ -6,6 +6,7 @@ import { RegistrationConfigComponent } from './components/RegistrationConfig';
 import { SiteList } from './components/SiteList';
 import { RegistrationStatsComponent } from './components/RegistrationStats';
 import { ControlPanel } from './components/ControlPanel';
+import { ActivityLog } from './components/ActivityLog';
 import { useRegistrationEngine } from './hooks/useRegistrationEngine';
 
 function App() {
@@ -19,6 +20,8 @@ function App() {
     isRunning,
     isPaused,
     stats,
+    logs,
+    currentSiteIndex,
     updateSite,
     startRegistration,
     pauseRegistration,
@@ -38,6 +41,7 @@ function App() {
           <div className="lg:col-span-2 space-y-6">
             <FileUpload onSitesLoad={setSites} />
             <SiteList sites={sites} onSiteUpdate={updateSite} />
+            <ActivityLog logs={logs} />
           </div>
           
           {/* Right Column */}
@@ -52,6 +56,24 @@ function App() {
               onReset={resetRegistration}
               canStart={canStart}
             />
+            
+            {/* Current Progress Indicator */}
+            {isRunning && (
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="font-medium text-gray-800 mb-2">Current Progress</h3>
+                <p className="text-sm text-gray-600">
+                  Processing site {currentSiteIndex + 1} of {sites.filter(s => s.status === 'pending').length} remaining
+                </p>
+                <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${sites.length > 0 ? ((currentSiteIndex + 1) / sites.length) * 100 : 0}%` 
+                    }}
+                  ></div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         

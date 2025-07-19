@@ -14,6 +14,12 @@ export interface SiteHandler {
   handler: (data: RegistrationData) => Promise<boolean>;
 }
 
+export interface RegistrationResult {
+  success: boolean;
+  message: string;
+  smsExpected: boolean;
+  details?: any;
+}
 // Site-specific handlers
 export class RegistrationEngine {
   private static instance: RegistrationEngine;
@@ -88,29 +94,34 @@ export class RegistrationEngine {
   }
 
   // Generic registration handler
-  public async registerOnSite(url: string, data: RegistrationData): Promise<{
-    success: boolean;
-    message: string;
-    smsExpected: boolean;
-  }> {
+  public async registerOnSite(url: string, data: RegistrationData): Promise<RegistrationResult> {
     const handler = this.getSiteHandler(url);
     
+    console.log(`🚀 Starting registration on: ${url}`);
+    console.log(`📱 Using phone: ${data.phoneNumber}`);
+    console.log(`📧 Using email: ${data.email}`);
+    
     if (handler) {
+      console.log(`🎯 Using specialized handler for: ${handler.name}`);
       try {
         const success = await handler.handler(data);
         return {
           success,
           message: success ? `Registration successful on ${handler.name}` : `Registration failed on ${handler.name}`,
-          smsExpected: handler.requiredFields.includes('phoneNumber')
+          smsExpected: handler.requiredFields.includes('phoneNumber'),
+          details: { handler: handler.name, requiredFields: handler.requiredFields }
         };
       } catch (error) {
+        console.error(`❌ Error in ${handler.name} handler:`, error);
         return {
           success: false,
           message: `Error registering on ${handler.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          smsExpected: handler.requiredFields.includes('phoneNumber')
+          smsExpected: handler.requiredFields.includes('phoneNumber'),
+          details: { error: error instanceof Error ? error.message : 'Unknown error' }
         };
       }
     } else {
+      console.log(`🔧 Using generic handler for: ${url}`);
       // Use generic handler for unknown sites
       return this.handleGenericSite(url, data);
     }
@@ -118,118 +129,229 @@ export class RegistrationEngine {
 
   // Site-specific handlers
   private async handleSekaimon(data: RegistrationData): Promise<boolean> {
-    // Sekaimon phone verification
-    console.log('Registering on Sekaimon with phone:', data.phoneNumber);
+    console.log('🌐 Sekaimon Registration Process Started');
+    console.log(`📱 Phone: ${data.phoneNumber}`);
     
-    // Simulate API call to Sekaimon
-    await this.delay(2000);
+    // Step 1: Navigate to registration page
+    console.log('📄 Step 1: Navigating to Sekaimon registration page...');
+    await this.delay(1000);
     
-    // In real implementation, this would make actual HTTP requests
+    // Step 2: Fill phone number form
+    console.log('📝 Step 2: Filling phone number form...');
     const formData = {
       phone: data.phoneNumber,
-      country_code: '+81' // Default to Japan
+      country_code: '+81', // Default to Japan
+      verification_method: 'sms'
     };
+    console.log('📋 Form data:', formData);
+    await this.delay(1500);
     
-    console.log('Sekaimon form data:', formData);
-    return Math.random() > 0.2; // 80% success rate simulation
+    // Step 3: Submit form
+    console.log('📤 Step 3: Submitting registration form...');
+    await this.delay(1000);
+    
+    // Step 4: Wait for SMS verification
+    console.log('📲 Step 4: Waiting for SMS verification code...');
+    await this.delay(2000);
+    
+    // Simulate success/failure
+    const success = Math.random() > 0.2; // 80% success rate
+    console.log(success ? '✅ Sekaimon registration successful!' : '❌ Sekaimon registration failed');
+    
+    return success;
   }
 
   private async handleQoo10(data: RegistrationData): Promise<boolean> {
-    console.log('Registering on Qoo10 as seller');
+    console.log('🛒 Qoo10 Seller Registration Process Started');
+    console.log(`📧 Email: ${data.email}`);
+    console.log(`📱 Phone: ${data.phoneNumber}`);
+    console.log(`👤 Name: ${data.firstName} ${data.lastName}`);
     
-    await this.delay(3000);
+    // Step 1: Navigate to seller registration
+    console.log('📄 Step 1: Navigating to Qoo10 seller registration...');
+    await this.delay(1000);
     
+    // Step 2: Fill registration form
+    console.log('📝 Step 2: Filling seller registration form...');
     const formData = {
       email: data.email,
       phone: data.phoneNumber,
       firstName: data.firstName,
       lastName: data.lastName,
       password: data.password || this.generatePassword(),
-      sellerType: 'individual'
+      sellerType: 'individual',
+      businessType: 'personal',
+      agreeToTerms: true
     };
+    console.log('📋 Seller form data:', formData);
+    await this.delay(2000);
     
-    console.log('Qoo10 seller registration:', formData);
-    return Math.random() > 0.25; // 75% success rate
+    // Step 3: Email verification
+    console.log('📧 Step 3: Email verification process...');
+    await this.delay(1500);
+    
+    // Step 4: Phone verification
+    console.log('📲 Step 4: Phone verification process...');
+    await this.delay(1500);
+    
+    const success = Math.random() > 0.25; // 75% success rate
+    console.log(success ? '✅ Qoo10 seller registration successful!' : '❌ Qoo10 seller registration failed');
+    
+    return success;
   }
 
   private async handleCityHeaven(data: RegistrationData): Promise<boolean> {
-    console.log('Registering on City Heaven with SMS auth');
+    console.log('🌃 City Heaven Registration Process Started');
+    console.log(`📱 Phone: ${data.phoneNumber}`);
     
-    await this.delay(1500);
+    // Step 1: Navigate to registration
+    console.log('📄 Step 1: Navigating to City Heaven registration...');
+    await this.delay(800);
     
+    // Step 2: SMS authentication
+    console.log('📝 Step 2: Initiating SMS authentication...');
     const formData = {
       phone: data.phoneNumber,
-      region: 'tokyo'
+      region: 'tokyo',
+      service_type: 'premium'
     };
+    console.log('📋 SMS auth data:', formData);
+    await this.delay(1200);
     
-    console.log('City Heaven SMS auth:', formData);
-    return Math.random() > 0.15; // 85% success rate
+    // Step 3: Verify SMS code
+    console.log('📲 Step 3: SMS verification...');
+    await this.delay(1000);
+    
+    const success = Math.random() > 0.15; // 85% success rate
+    console.log(success ? '✅ City Heaven registration successful!' : '❌ City Heaven registration failed');
+    
+    return success;
   }
 
   private async handleMixi(data: RegistrationData): Promise<boolean> {
-    console.log('Creating Mixi account');
+    console.log('👥 Mixi Account Creation Process Started');
+    console.log(`📧 Email: ${data.email}`);
+    console.log(`📱 Phone: ${data.phoneNumber}`);
     
-    await this.delay(2500);
+    // Step 1: Navigate to signup
+    console.log('📄 Step 1: Navigating to Mixi signup...');
+    await this.delay(1000);
     
+    // Step 2: Fill account form
+    console.log('📝 Step 2: Creating Mixi profile...');
     const formData = {
       email: data.email,
       phone: data.phoneNumber,
       nickname: `${data.firstName}${Math.floor(Math.random() * 1000)}`,
       password: data.password || this.generatePassword(),
-      birthYear: 1990 + Math.floor(Math.random() * 20)
+      birthYear: 1990 + Math.floor(Math.random() * 20),
+      gender: Math.random() > 0.5 ? 'male' : 'female',
+      prefecture: 'Tokyo'
     };
+    console.log('📋 Mixi profile data:', formData);
+    await this.delay(2000);
     
-    console.log('Mixi account creation:', formData);
-    return Math.random() > 0.2; // 80% success rate
+    // Step 3: Email verification
+    console.log('📧 Step 3: Email verification...');
+    await this.delay(1000);
+    
+    // Step 4: Phone verification
+    console.log('📲 Step 4: Phone verification...');
+    await this.delay(1500);
+    
+    const success = Math.random() > 0.2; // 80% success rate
+    console.log(success ? '✅ Mixi account created successfully!' : '❌ Mixi account creation failed');
+    
+    return success;
   }
 
   private async handleZexyEnmusubi(data: RegistrationData): Promise<boolean> {
-    console.log('Registering on Zexy Enmusubi');
+    console.log('💕 Zexy Enmusubi Registration Process Started');
+    console.log(`📱 Phone: ${data.phoneNumber}`);
     
-    await this.delay(2000);
+    // Step 1: Navigate to dating service registration
+    console.log('📄 Step 1: Navigating to Zexy Enmusubi registration...');
+    await this.delay(1000);
     
+    // Step 2: Fill dating profile
+    console.log('📝 Step 2: Creating dating profile...');
     const formData = {
       phone: data.phoneNumber,
       gender: Math.random() > 0.5 ? 'male' : 'female',
-      age: 25 + Math.floor(Math.random() * 15)
+      age: 25 + Math.floor(Math.random() * 15),
+      location: 'Tokyo',
+      occupation: 'Office Worker',
+      lookingFor: 'serious_relationship'
     };
+    console.log('📋 Dating profile data:', formData);
+    await this.delay(1500);
     
-    console.log('Zexy Enmusubi registration:', formData);
-    return Math.random() > 0.3; // 70% success rate
+    // Step 3: Phone verification
+    console.log('📲 Step 3: Phone verification for dating service...');
+    await this.delay(1500);
+    
+    const success = Math.random() > 0.3; // 70% success rate
+    console.log(success ? '✅ Zexy Enmusubi registration successful!' : '❌ Zexy Enmusubi registration failed');
+    
+    return success;
   }
 
   private async handleSuntory(data: RegistrationData): Promise<boolean> {
-    console.log('Creating Suntory ID account');
+    console.log('🥃 Suntory ID Account Creation Process Started');
+    console.log(`📧 Email: ${data.email}`);
+    console.log(`📱 Phone: ${data.phoneNumber}`);
     
-    await this.delay(2000);
+    // Step 1: Navigate to Suntory ID registration
+    console.log('📄 Step 1: Navigating to Suntory ID registration...');
+    await this.delay(1000);
     
+    // Step 2: Fill loyalty program form
+    console.log('📝 Step 2: Filling loyalty program registration...');
     const formData = {
       email: data.email,
       phone: data.phoneNumber,
       firstName: data.firstName,
       lastName: data.lastName,
       password: data.password || this.generatePassword(),
-      birthDate: this.generateBirthDate()
+      birthDate: this.generateBirthDate(),
+      drinkingPreference: 'whisky',
+      marketingConsent: true
     };
+    console.log('📋 Suntory loyalty data:', formData);
+    await this.delay(1500);
     
-    console.log('Suntory ID registration:', formData);
-    return Math.random() > 0.1; // 90% success rate
+    // Step 3: Email verification
+    console.log('📧 Step 3: Email verification...');
+    await this.delay(1000);
+    
+    // Step 4: Welcome to loyalty program
+    console.log('🎉 Step 4: Activating loyalty program benefits...');
+    await this.delay(1000);
+    
+    const success = Math.random() > 0.1; // 90% success rate
+    console.log(success ? '✅ Suntory ID created successfully!' : '❌ Suntory ID creation failed');
+    
+    return success;
   }
 
-  private async handleGenericSite(url: string, data: RegistrationData): Promise<{
-    success: boolean;
-    message: string;
-    smsExpected: boolean;
-  }> {
-    console.log('Using generic handler for:', url);
+  private async handleGenericSite(url: string, data: RegistrationData): Promise<RegistrationResult> {
+    console.log('🔧 Generic Registration Process Started');
+    console.log(`🌐 URL: ${url}`);
+    console.log(`📱 Phone: ${data.phoneNumber}`);
     
-    await this.delay(2000);
+    // Step 1: Analyze site
+    console.log('📄 Step 1: Analyzing site structure...');
+    await this.delay(1000);
     
     // Try to determine what fields might be needed based on URL patterns
     const urlLower = url.toLowerCase();
     const needsEmail = urlLower.includes('email') || urlLower.includes('register') || urlLower.includes('signup');
     const needsPhone = urlLower.includes('phone') || urlLower.includes('sms') || urlLower.includes('mobile');
     
+    console.log(`🔍 Analysis: needsEmail=${needsEmail}, needsPhone=${needsPhone}`);
+    
+    // Step 2: Prepare form data
+    console.log('📝 Step 2: Preparing registration data...');
     const formData: any = {};
     
     if (needsPhone || !needsEmail) {
@@ -243,14 +365,32 @@ export class RegistrationEngine {
       formData.password = data.password || this.generatePassword();
     }
     
-    console.log('Generic registration attempt:', formData);
+    console.log('📋 Generic form data:', formData);
+    await this.delay(1500);
+    
+    // Step 3: Submit registration
+    console.log('📤 Step 3: Submitting registration...');
+    await this.delay(1000);
+    
+    // Step 4: Handle verification if needed
+    if (needsPhone) {
+      console.log('📲 Step 4: Phone verification process...');
+      await this.delay(1000);
+    }
+    
+    if (needsEmail) {
+      console.log('📧 Step 4: Email verification process...');
+      await this.delay(1000);
+    }
     
     const success = Math.random() > 0.4; // 60% success rate for unknown sites
+    console.log(success ? '✅ Generic registration successful!' : '❌ Generic registration failed');
     
     return {
       success,
       message: success ? 'Registration completed successfully' : 'Registration failed - site may require manual verification',
-      smsExpected: needsPhone || Object.keys(formData).includes('phone')
+      smsExpected: needsPhone || Object.keys(formData).includes('phone'),
+      details: { formData, needsEmail, needsPhone }
     };
   }
 

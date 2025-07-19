@@ -2,7 +2,7 @@ export interface Site {
   id: string;
   name: string;
   url: string;
-  status: 'pending' | 'processing' | 'success' | 'failed';
+  status: 'pending' | 'processing' | 'success' | 'failed' | 'registered' | 'error';
   lastAttempt?: Date;
   errorMessage?: string;
 }
